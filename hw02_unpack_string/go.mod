@@ -1,4 +1,4 @@
-module github.com/timutkin/hw02_unpack_string
+module github.com/timutkin/otus-go/hw02_unpack_string
 
 go 1.23
 

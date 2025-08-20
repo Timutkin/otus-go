@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strconv"
 	"strings"
-	"unicode"
 )
 
 var ErrInvalidString = errors.New("invalid string")
@@ -16,7 +15,7 @@ func Unpack(str string) (string, error) {
 
 	runes := []rune(str)
 	if len(runes) == 1 {
-		if unicode.IsDigit(runes[0]) || string(runes[0]) == `\` {
+		if isASCIIDigit(runes[0]) || string(runes[0]) == `\` {
 			return "", ErrInvalidString
 		}
 		return string(runes[0]), nil
@@ -25,7 +24,7 @@ func Unpack(str string) (string, error) {
 	var res strings.Builder
 	i := 0
 	for i < len(runes) {
-		if unicode.IsDigit(runes[i]) {
+		if isASCIIDigit(runes[i]) {
 			return "", ErrInvalidString
 		}
 
@@ -48,7 +47,7 @@ func Unpack(str string) (string, error) {
 			continue
 		}
 
-		if unicode.IsDigit(runes[i+1]) {
+		if isASCIIDigit(runes[i+1]) {
 			res.WriteString(getRepeatedString(current, runes[i+1]))
 			i += 2
 		} else {
@@ -61,8 +60,8 @@ func Unpack(str string) (string, error) {
 
 func processNextSymbolsAfterEscape(runes []rune, i int) (offset int, str string, err error) {
 	next := string(runes[i+1])
-	if next == `\` || unicode.IsDigit(runes[i+1]) {
-		if i+2 < len(runes) && unicode.IsDigit(runes[i+2]) {
+	if next == `\` || isASCIIDigit(runes[i+1]) {
+		if i+2 < len(runes) && isASCIIDigit(runes[i+2]) {
 			return 3, getRepeatedString(next, runes[i+2]), nil
 		}
 		return 2, next, nil
@@ -73,4 +72,8 @@ func processNextSymbolsAfterEscape(runes []rune, i int) (offset int, str string,
 func getRepeatedString(str string, count rune) string {
 	digit, _ := strconv.Atoi(string(count))
 	return strings.Repeat(str, digit)
+}
+
+func isASCIIDigit(r rune) bool {
+	return r >= '0' && r <= '9'
 }
