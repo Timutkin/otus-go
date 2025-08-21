@@ -1,4 +1,4 @@
-module github.com/timutkin/hw03_frequency_analysis
+module github.com/timutkin/otus-go/hw03_frequency_analysis
 
 go 1.23
 
