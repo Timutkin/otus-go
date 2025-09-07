@@ -63,7 +63,6 @@ func TestCache(t *testing.T) {
 
 		_, ok = c.Get("three")
 		require.True(t, ok)
-
 	})
 
 	t.Run("not recently used", func(t *testing.T) {
