@@ -14,14 +14,16 @@ func Run(tasks []Task, n, m int) error {
 		return ErrErrorsLimitExceeded
 	}
 	wg := &sync.WaitGroup{}
-	mu := &sync.Mutex{}
+	mu := &sync.RWMutex{}
 	totalError := 0
 	taskCh := make(chan Task)
 	go func() {
 		for _, t := range tasks {
-			if totalError > m-1 {
+			mu.RLock()
+			if totalError == m {
 				break
 			}
+			mu.RUnlock()
 			taskCh <- t
 		}
 		close(taskCh)
@@ -35,9 +37,12 @@ func Run(tasks []Task, n, m int) error {
 			}
 			for task := range taskCh {
 				err := task()
+				mu.RLock()
 				if m != 0 && totalError == m {
+					mu.RUnlock()
 					break
 				}
+				mu.RUnlock()
 				if err != nil {
 					mu.Lock()
 					totalError++
