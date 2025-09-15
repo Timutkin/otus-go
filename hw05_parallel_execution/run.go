@@ -13,37 +13,36 @@ func Run(tasks []Task, n, m int) error {
 	if m < 0 {
 		return ErrErrorsLimitExceeded
 	}
-	mutex := &sync.Mutex{}
-	totalError := 0
-	countOfTask := len(tasks)
-	countOfTaskPerGo := countOfTask / n
 	wg := &sync.WaitGroup{}
-	if countOfTaskPerGo == 0 {
-		countOfTaskPerGo = 1
-	}
+	mu := &sync.Mutex{}
+	totalError := 0
+	taskCh := make(chan Task)
+	go func() {
+		for _, t := range tasks {
+			if totalError > m-1 {
+				break
+			}
+			taskCh <- t
+		}
+		close(taskCh)
+	}()
 	for i := 0; i < n; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if countOfTaskPerGo == 1 && i > countOfTask-1 {
+			if i > len(tasks) {
 				return
 			}
-			from := countOfTaskPerGo * i
-			to := from + countOfTaskPerGo
-			if i == n-1 {
-				to += countOfTask % n
-			}
-			for j := from; j < to; j++ {
-				err := tasks[j]()
-				mutex.Lock()
+			for task := range taskCh {
+				err := task()
 				if m != 0 && totalError == m {
-					mutex.Unlock()
 					break
 				}
-				if m != 0 && err != nil {
+				if err != nil {
+					mu.Lock()
 					totalError++
+					mu.Unlock()
 				}
-				mutex.Unlock()
 			}
 		}()
 	}
