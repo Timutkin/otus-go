@@ -3,6 +3,7 @@ package hw05parallelexecution
 import (
 	"errors"
 	"sync"
+	"sync/atomic"
 )
 
 var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
@@ -13,17 +14,15 @@ func Run(tasks []Task, n, m int) error {
 	if m < 0 {
 		return ErrErrorsLimitExceeded
 	}
+	m64 := int64(m)
+	var totalError int64
 	wg := &sync.WaitGroup{}
-	mu := &sync.RWMutex{}
-	totalError := 0
 	taskCh := make(chan Task)
 	go func() {
 		for _, t := range tasks {
-			mu.RLock()
-			if totalError == m {
+			if atomic.LoadInt64(&totalError) == m64 {
 				break
 			}
-			mu.RUnlock()
 			taskCh <- t
 		}
 		close(taskCh)
@@ -37,22 +36,17 @@ func Run(tasks []Task, n, m int) error {
 			}
 			for task := range taskCh {
 				err := task()
-				mu.RLock()
-				if m != 0 && totalError == m {
-					mu.RUnlock()
+				if m != 0 && atomic.LoadInt64(&totalError) == m64 {
 					break
 				}
-				mu.RUnlock()
 				if err != nil {
-					mu.Lock()
-					totalError++
-					mu.Unlock()
+					atomic.AddInt64(&totalError, 1)
 				}
 			}
 		}()
 	}
 	wg.Wait()
-	if totalError > m-1 {
+	if atomic.LoadInt64(&totalError) > m64-1 {
 		return ErrErrorsLimitExceeded
 	}
 	return nil
