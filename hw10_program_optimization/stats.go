@@ -3,9 +3,11 @@ package hw10programoptimization
 import (
 	"bufio"
 	"fmt"
-	"github.com/mailru/easyjson"
 	"io"
 	"strings"
+
+	//nolint:depguard
+	"github.com/mailru/easyjson"
 )
 
 type User struct {
@@ -51,7 +53,7 @@ func countDomains(u users, domain string) (DomainStat, error) {
 		matched := strings.Contains(user.Email, "."+domain)
 		if matched {
 			key := strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])
-			result[key] = result[key] + 1
+			result[key]++
 		}
 	}
 	return result, nil
