@@ -1,5 +1,4 @@
-//go:build bench
-// +build bench
+//go:build !bench
 
 package hw10programoptimization
 
