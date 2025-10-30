@@ -14,7 +14,7 @@ import (
 var timeout time.Duration
 
 func main() {
-	flag.DurationVar(&timeout, "timeout", DefaultTimeoutSecond, "connection timeout")
+	flag.DurationVar(&timeout, "timeout", DefaultTimeout, "connection timeout")
 	flag.Parse()
 
 	host := flag.Arg(0)

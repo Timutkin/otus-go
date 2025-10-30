@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const DefaultTimeoutSecond = 10 * time.Second
+const DefaultTimeout = 10 * time.Second
 
 type TelnetClient interface {
 	Connect() error
