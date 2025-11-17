@@ -31,4 +31,7 @@ install-lint-deps:
 lint: install-lint-deps
 	golangci-lint run ./...
 
+migrate:
+	go run ./cmd/calendar/migrate/main.go
+
 .PHONY: build run build-img run-img version test lint
