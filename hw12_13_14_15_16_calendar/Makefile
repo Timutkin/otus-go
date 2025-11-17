@@ -26,7 +26,8 @@ test:
 	go test -race ./internal/...
 
 install-lint-deps:
-	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s latest -- -b $(shell go env GOPATH)/bin v1.57.2
+	command -v golangci-lint >/dev/null 2>&1 || \
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s latest -- -b $(shell go env GOPATH)/bin
 
 lint: install-lint-deps
 	golangci-lint run ./...
