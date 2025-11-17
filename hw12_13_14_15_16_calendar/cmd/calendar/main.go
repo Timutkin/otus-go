@@ -16,7 +16,6 @@ import (
 	internalhttp "github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/server/http"
 	memorystorage "github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/storage/memory"
 	sqlstorage "github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/storage/sql"
-	_ "github.com/timutkin/otus-go/hw12_13_14_15_calendar/migrations"
 )
 
 var configFile string
