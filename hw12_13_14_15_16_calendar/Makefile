@@ -30,7 +30,7 @@ install-lint-deps:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s latest -- -b $(shell go env GOPATH)/bin
 
 lint: install-lint-deps
-	golangci-lint run ./...
+	PATH=$(shell pwd)/bin:$$PATH golangci-lint run ./...
 
 migrate:
 	go run -tags=migrations ./cmd/calendar/migrate/main.go
