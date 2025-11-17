@@ -8,7 +8,6 @@ import (
 	"time"
 
 	_ "github.com/jackc/pgx/stdlib"
-	"github.com/pressly/goose/v3"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/app"
@@ -49,7 +48,6 @@ func main() {
 	} else {
 		logg.Info("work with postgresql...")
 		storage = sqlstorage.New(cfg.DB)
-		applyMigrations(cfg.DB.CollectDsn())
 	}
 
 	calendar := app.New(logg, storage)
@@ -72,16 +70,4 @@ func main() {
 	}()
 
 	server.Start(ctx)
-}
-
-func applyMigrations(dsn string) {
-	db, err := goose.OpenDBWithDriver("pgx", dsn)
-	if err != nil {
-		log.Fatal().Err(err).Msg("error while connect to db")
-	}
-
-	ctx := context.Background()
-	if err = goose.RunContext(ctx, "up", db, "migrations"); err != nil {
-		log.Fatal().Err(err).Msg("goose run failed")
-	}
 }
