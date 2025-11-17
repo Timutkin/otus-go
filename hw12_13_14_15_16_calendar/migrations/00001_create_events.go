@@ -1,3 +1,5 @@
+//go:build !exclude_migrations
+
 package migrations
 
 import (
