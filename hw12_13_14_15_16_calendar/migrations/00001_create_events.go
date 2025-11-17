@@ -1,4 +1,5 @@
-//go:build !exclude_migrations
+//go:build migrations
+// +build migrations
 
 package migrations
 
