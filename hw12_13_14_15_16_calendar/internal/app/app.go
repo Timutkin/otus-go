@@ -31,7 +31,7 @@ func New(logger Logger, storage Storage) *App {
 	}
 }
 
-// nolint
+//nolint
 func (a *App) CreateEvent(ctx context.Context, id, title string) error {
 	return nil
 	// return a.storage.CreateEvent(storage.Event{ID: id, Title: title})
