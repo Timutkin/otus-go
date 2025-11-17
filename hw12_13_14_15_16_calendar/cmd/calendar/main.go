@@ -3,21 +3,27 @@ package main
 import (
 	"context"
 	"flag"
-	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	_ "github.com/jackc/pgx/stdlib"
+	"github.com/pressly/goose/v3"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/app"
+	"github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/config"
 	"github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/logger"
 	internalhttp "github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/server/http"
 	memorystorage "github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/storage/memory"
+	sqlstorage "github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/storage/sql"
+	_ "github.com/timutkin/otus-go/hw12_13_14_15_calendar/migrations"
 )
 
 var configFile string
 
 func init() {
-	flag.StringVar(&configFile, "config", "/etc/calendar/config.toml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "./configs/config.yaml", "Path to configuration file")
 }
 
 func main() {
@@ -28,13 +34,27 @@ func main() {
 		return
 	}
 
-	config := NewConfig()
-	logg := logger.New(config.Logger.Level)
+	cfg := config.NewConfig(configFile)
+	level, err := zerolog.ParseLevel(cfg.Logger.Level)
+	if err != nil {
+		log.Fatal().Err(err).Msg("error while parsing log level")
+	}
+	zerolog.SetGlobalLevel(level)
+	logg := logger.New()
 
-	storage := memorystorage.New()
+	var storage app.Storage
+	if cfg.DB.InMemory {
+		logg.Info("work with in-memory mod ...")
+		storage = memorystorage.New()
+	} else {
+		logg.Info("work with postgresql...")
+		storage = sqlstorage.New(cfg.DB)
+		applyMigrations(cfg.DB.CollectDsn())
+	}
+
 	calendar := app.New(logg, storage)
 
-	server := internalhttp.NewServer(logg, calendar)
+	server := internalhttp.NewServer(logg, calendar, cfg.Server)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
@@ -47,15 +67,21 @@ func main() {
 		defer cancel()
 
 		if err := server.Stop(ctx); err != nil {
-			logg.Error("failed to stop http server: " + err.Error())
+			logg.Error("failed to stop http server", err)
 		}
 	}()
 
-	logg.Info("calendar is running...")
+	server.Start(ctx)
+}
 
-	if err := server.Start(ctx); err != nil {
-		logg.Error("failed to start http server: " + err.Error())
-		cancel()
-		os.Exit(1) //nolint:gocritic
+func applyMigrations(dsn string) {
+	db, err := goose.OpenDBWithDriver("pgx", dsn)
+	if err != nil {
+		log.Fatal().Err(err).Msg("error while connect to db")
+	}
+
+	ctx := context.Background()
+	if err = goose.RunContext(ctx, "up", db, "migrations"); err != nil {
+		log.Fatal().Err(err).Msg("goose run failed")
 	}
 }
