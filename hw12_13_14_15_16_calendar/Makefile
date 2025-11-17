@@ -27,7 +27,7 @@ test:
 
 install-lint-deps:
 	command -v golangci-lint >/dev/null 2>&1 || \
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s latest -- -b $(shell go env GOPATH)/bin
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.64.8 -- -b $(shell go env GOPATH)/bin
 
 lint: install-lint-deps
 	PATH=$(shell pwd)/bin:$$PATH golangci-lint run ./...
