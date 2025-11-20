@@ -8,7 +8,7 @@ build:
 	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
 
 run: build
-	$(BIN) -config ./configs/config.toml
+	$(BIN) -config ./configs/config.yaml
 
 build-img:
 	docker build \
@@ -23,12 +23,16 @@ version: build
 	$(BIN) version
 
 test:
-	go test -race ./internal/... ./pkg/...
+	go test -race ./internal/...
 
 install-lint-deps:
-	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.57.2
+	command -v golangci-lint >/dev/null 2>&1 || \
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.64.8 -- -b $(shell go env GOPATH)/bin
 
 lint: install-lint-deps
-	golangci-lint run ./...
+	PATH=$(shell pwd)/bin:$$PATH golangci-lint run ./...
+
+migrate:
+	go run -tags=migrations ./cmd/calendar/migrate/main.go
 
 .PHONY: build run build-img run-img version test lint

@@ -1,5 +1,17 @@
-[logger]
-level = "INFO"
+logging:
+  level: info
 
-# TODO
-# ...
+server:
+  port: 8080
+  host: localhost
+  mode: release
+
+db:
+  in-memory: false
+  host: localhost
+  port: 5432
+  user: postgres
+  dbname: postgres
+  tables:
+    schema: public
+    events: events
