@@ -21,9 +21,18 @@ func (l *Logger) InfoWithParams(msg string, params map[string]string) {
 	addParams(msg, params, lg)
 }
 
+func (l *Logger) ErrorWithParams(msg string, params map[string]string, err error) {
+	lg := l.Lg.Error().Err(err)
+	addParams(msg, params, lg)
+}
+
 func (l *Logger) DebugWithParams(msg string, params map[string]string) {
 	lg := l.Lg.Debug()
 	addParams(msg, params, lg)
+}
+
+func (l *Logger) ErrorWithAny(msg string, name string, param any) {
+	l.Lg.Error().Any(name, param).Msg(msg)
 }
 
 func addParams(msg string, params map[string]string, lg *zerolog.Event) {
@@ -35,6 +44,10 @@ func addParams(msg string, params map[string]string, lg *zerolog.Event) {
 
 func (l *Logger) Error(msg string, err error) {
 	l.Lg.Error().Err(err).Msg(msg)
+}
+
+func (l *Logger) Fatal(msg string, err error) {
+	l.Lg.Fatal().Err(err).Msg(msg)
 }
 
 func (l *Logger) Info(msg string) {

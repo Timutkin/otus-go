@@ -7,10 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var (
-	ErrEventNotFoundErr  = errors.New("event not found")
-	ErrUserIDShouldBeNil = errors.New("you can't change the user id")
-)
+var ErrEventNotFoundErr = errors.New("event not found")
 
 type Event struct {
 	ID               uuid.UUID      `db:"id"`

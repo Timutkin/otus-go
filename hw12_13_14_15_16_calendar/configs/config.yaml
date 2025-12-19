@@ -2,9 +2,10 @@ logging:
   level: info
 
 server:
-  port: 8080
-  host: localhost
-  mode: release
+  http-host: localhost
+  http-port: 8080
+  grpc-host: localhost
+  grpc-port: 50051
 
 db:
   in-memory: false
@@ -14,4 +15,3 @@ db:
   dbname: postgres
   tables:
     schema: public
-    events: events

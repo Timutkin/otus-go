@@ -20,7 +20,7 @@ func Up00001(ctx context.Context, tx *sql.Tx) error {
 								id                UUID PRIMARY KEY,
 								title             VARCHAR(128) NOT NULL,
 								date_time         TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-								event_duration    INTERVAL NOT NULL,
+								event_duration    BIGINT NOT NULL,
 								description       VARCHAR(512),
 								user_id           UUID         NOT NULL,
 								notification_time TIMESTAMPTZ

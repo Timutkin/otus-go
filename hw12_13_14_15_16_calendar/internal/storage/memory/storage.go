@@ -22,7 +22,7 @@ func (s *Storage) Update(ctx context.Context, newEvent storage.Event) error {
 		return err
 	}
 	if newEvent.UserID != nil {
-		return storage.ErrUserIDShouldBeNil
+		e.UserID = newEvent.UserID
 	}
 	if newEvent.Title != nil {
 		e.Title = newEvent.Title

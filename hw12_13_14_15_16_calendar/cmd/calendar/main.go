@@ -10,10 +10,11 @@ import (
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/app"
 	"github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/config"
 	"github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/logger"
-	internalhttp "github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/server/http"
+	"github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/mapper"
+	internalhttp "github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/server"
+	"github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/service"
 	memorystorage "github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/storage/memory"
 	sqlstorage "github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/storage/sql"
 )
@@ -40,18 +41,23 @@ func main() {
 	zerolog.SetGlobalLevel(level)
 	logg := logger.New()
 
-	var storage app.Storage
+	var storage service.Storage
 	if cfg.DB.InMemory {
 		logg.Info("work with in-memory mod ...")
 		storage = memorystorage.New()
 	} else {
 		logg.Info("work with postgresql...")
-		storage = sqlstorage.New(cfg.DB)
+		sql := sqlstorage.New(cfg.DB)
+		err := sql.Connect(context.Background())
+		if err != nil {
+			logg.Fatal("failed connect to db", err)
+		}
+		storage = sql
 	}
 
-	calendar := app.New(logg, storage)
-
-	server := internalhttp.NewServer(logg, calendar, cfg.Server)
+	eventService := service.NewEventService(storage, logg, mapper.EventMapper{})
+	app := internalhttp.NewApp(eventService)
+	server := internalhttp.NewServer(app, logg, cfg.Server)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
