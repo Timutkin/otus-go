@@ -35,4 +35,7 @@ lint: install-lint-deps
 migrate:
 	go run -tags=migrations ./cmd/calendar/migrate/main.go
 
-.PHONY: build run build-img run-img version test lint
+generate:
+	go generate ./grpc/pb/...
+
+.PHONY: build run build-img run-img version test lint generate

@@ -20,9 +20,10 @@ type LoggerConf struct {
 }
 
 type Server struct {
-	Host string `config:"host"`
-	Port int    `config:"port"`
-	Mode string `config:"mode"`
+	HTTPHost string `yaml:"http-host"` //nolint:tagliatelle
+	HTTPPort int    `yaml:"http-port"` //nolint:tagliatelle
+	GRPCHost string `yaml:"grpc-host"` //nolint:tagliatelle
+	GRPCPort int    `yaml:"grpc-port"` //nolint:tagliatelle
 }
 
 type DBConf struct {
@@ -32,10 +33,9 @@ type DBConf struct {
 	User     string   `config:"user"`
 	Password string   `config:"password"`
 	Dbname   string   `config:"dbname"`
-	DBTables DBTables `config:"tables"`
+	Tables   DBTables `config:"tables"`
 }
 type DBTables struct {
-	Events string `config:"events"`
 	Schema string `config:"schema"`
 }
 
@@ -58,9 +58,10 @@ func NewConfig(pathToYaml string) Config {
 			Dbname:   "postgres",
 		},
 		Server: Server{
-			Host: "localhost",
-			Port: 8080,
-			Mode: "release",
+			HTTPHost: "localhost",
+			HTTPPort: 8080,
+			GRPCHost: "localhost",
+			GRPCPort: 50051,
 		},
 	}
 	loader := confita.NewLoader(file.NewBackend(pathToYaml))

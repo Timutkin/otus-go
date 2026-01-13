@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package event;
+
+option go_package = "/;pb";
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+service EventService {
+    rpc CreateEvent(CreateEventRequest) returns (CreateEventResponse){
+      option (google.api.http) = {
+        post: "/api/v1/events"
+        body: "*"
+      };
+    }
+    rpc GetEventsByUserID(GetByUserIdRequest) returns(EventsResponse){
+      option (google.api.http) = {
+        get: "/api/v1/events/users/{userId}"
+      };
+    }
+    rpc GetById(ByIdRequest) returns(EventResponse){
+      option (google.api.http) = {
+        get: "/api/v1/events/{eventId}"
+      };
+    }
+    rpc UpdateEvent(UpdateEventRequest) returns(EventResponse){
+      option (google.api.http) = {
+        patch: "/api/v1/events"
+        body: "*"
+      };
+    }
+    rpc DeleteEvent(ByIdRequest) returns(DeleteEventResponse){
+      option (google.api.http) = {
+        delete: "/api/v1/events/{eventId}"
+      };
+    }
+}
+
+message Event {
+  string id = 1;
+  string title = 2;
+  google.protobuf.Timestamp dateTime = 3;
+  int64 eventDuration = 4;
+  string description = 5;
+  string userId = 6;
+  optional google.protobuf.Timestamp notificationTime = 7;
+}
+
+message UpdateEventRequest {
+  string id = 1;
+  optional string title = 2;
+  optional google.protobuf.Timestamp dateTime = 3;
+  optional int64 eventDuration = 4;
+  optional string description = 5;
+  optional google.protobuf.Timestamp notificationTime = 6;
+}
+
+message CreateEventRequest {
+  event.Event event = 1;
+}
+message CreateEventResponse{}
+
+message DeleteEventResponse{}
+
+message GetByUserIdRequest {
+  string userId = 1;
+}
+
+message ByIdRequest {
+  string eventId = 1;
+}
+
+message EventsResponse {
+  repeated event.Event events = 1;
+}
+
+message EventResponse {
+  event.Event event = 1;
+}

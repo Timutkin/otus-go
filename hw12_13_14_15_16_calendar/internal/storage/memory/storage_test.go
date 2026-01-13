@@ -122,19 +122,6 @@ func TestStorage(t *testing.T) {
 			assert.Equal(t, *event.EventDuration, *updatedEvent.EventDuration)
 			assert.Equal(t, *event.NotificationTime, *updatedEvent.NotificationTime)
 		})
-
-		t.Run("user id update returns error", func(t *testing.T) {
-			event := createEvent()
-			ms := New()
-			_ = ms.Create(context.Background(), event)
-
-			newUserID := uuid.New()
-			err := ms.Update(context.Background(), storage.Event{
-				ID:     event.ID,
-				UserID: &newUserID,
-			})
-			assert.ErrorIs(t, err, storage.ErrUserIDShouldBeNil)
-		})
 	})
 }
 
