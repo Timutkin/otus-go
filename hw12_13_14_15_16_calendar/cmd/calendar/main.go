@@ -22,7 +22,7 @@ import (
 var configFile string
 
 func init() {
-	flag.StringVar(&configFile, "config", "./configs/config.yaml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "./configs/calendar_config.yaml", "Path to configuration file")
 }
 
 func main() {
@@ -33,7 +33,7 @@ func main() {
 		return
 	}
 
-	cfg := config.NewConfig(configFile)
+	cfg := config.NewCalendarConfig(configFile)
 	level, err := zerolog.ParseLevel(cfg.Logger.Level)
 	if err != nil {
 		log.Fatal().Err(err).Msg("error while parsing log level")

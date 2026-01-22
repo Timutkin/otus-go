@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
@@ -25,11 +26,13 @@ type Storage struct {
 }
 
 func (s *Storage) Create(ctx context.Context, e storage.Event) error {
-	sql, args, err := sq.Insert(s.tableName).
+	builder := sq.Insert(s.tableName).
 		Columns("id", "title", "date_time", "event_duration", "description", "user_id", "notification_time").
-		Values(e.ID, e.Title, e.DateTime, e.EventDuration, e.Description, e.UserID, e.NotificationTime).
-		PlaceholderFormat(sq.Dollar).
-		ToSql()
+		Values(e.ID, e.Title, e.DateTime, e.EventDuration, e.Description, e.UserID, e.NotificationTime)
+	if e.NotificationTime != nil {
+		builder = builder.Columns("notification_status").Values("PENDING")
+	}
+	sql, args, err := builder.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
 		return fmt.Errorf("building create user query : %w", err)
 	}
@@ -66,6 +69,9 @@ func (s *Storage) Update(ctx context.Context, newEvent storage.Event) error {
 	if newEvent.NotificationTime != nil {
 		sql = sql.Set("notification_time", newEvent.NotificationTime)
 	}
+	if newEvent.NotificationStatus != nil {
+		sql = sql.Set("notification_status", newEvent.NotificationStatus)
+	}
 
 	sql = sql.Where(sq.Eq{"id": newEvent.ID})
 	query, args, err := sql.PlaceholderFormat(sq.Dollar).ToSql()
@@ -95,7 +101,7 @@ func (s *Storage) GetEventsByUserID(ctx context.Context, userID uuid.UUID) ([]st
 	}
 	rows, err := s.db.QueryxContext(ctx, sql, args...)
 	if err != nil {
-		return events, fmt.Errorf("error while executing select * from users where user_id = $1 : %w", err)
+		return events, fmt.Errorf("error while executing select * from events where user_id = $1 : %w", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -116,7 +122,7 @@ func (s *Storage) GetByID(ctx context.Context, eventID uuid.UUID) (storage.Event
 	}
 	rows, err := s.db.QueryxContext(ctx, sql, args...)
 	if err != nil {
-		return EmptyEvent, fmt.Errorf("error while executing select * from users where id = $1 : %w", err)
+		return EmptyEvent, fmt.Errorf("error while executing select * from events where id = $1 : %w", err)
 	}
 	defer rows.Close()
 	if rows.Next() {
@@ -128,6 +134,58 @@ func (s *Storage) GetByID(ctx context.Context, eventID uuid.UUID) (storage.Event
 		return event, nil
 	}
 	return EmptyEvent, storage.ErrEventNotFoundErr
+}
+
+func (s *Storage) FindByCurrentTimeByMinutesAndPendingStatus() ([]storage.Event, error) {
+	events := make([]storage.Event, 0)
+	sql, args, err := sq.Select("*").From(s.tableName).Where(
+		sq.And{
+			sq.Eq{"notification_status": "PENDING"},
+			sq.Expr("DATE_TRUNC('minute', notification_time) = DATE_TRUNC('minute', NOW())"),
+		}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return events, err
+	}
+	rows, err := s.db.Queryx(sql, args...)
+	if err != nil {
+		return events, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var event storage.Event
+		err := rows.StructScan(&event)
+		if err != nil {
+			return events, fmt.Errorf(ErrParsingToStructError, "storage.Event", err)
+		}
+		events = append(events, event)
+	}
+	return events, nil
+}
+
+func (s *Storage) FindByDateTimeMoreOrEqual(dateTime time.Time) ([]storage.Event, error) {
+	events := make([]storage.Event, 0)
+	sql, args, err := sq.Select("*").From(s.tableName).Where(sq.LtOrEq{"date_time": dateTime}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return events, err
+	}
+	rows, err := s.db.Queryx(sql, args...)
+	if err != nil {
+		return events, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var event storage.Event
+		err := rows.StructScan(&event)
+		if err != nil {
+			return events, fmt.Errorf(ErrParsingToStructError, "storage.Event", err)
+		}
+		events = append(events, event)
+	}
+	return events, nil
 }
 
 func New(cfg config.DBConf) *Storage {

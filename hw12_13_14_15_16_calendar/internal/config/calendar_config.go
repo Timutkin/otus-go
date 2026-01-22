@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type Config struct {
+type CalendarConfig struct {
 	Logger LoggerConf `config:"logging"`
 	DB     DBConf     `config:"db"`
 	Server Server     `config:"server"`
@@ -44,8 +44,8 @@ func (c DBConf) CollectDsn() string {
 		c.Host, c.Port, c.User, c.Password, c.Dbname)
 }
 
-func NewConfig(pathToYaml string) Config {
-	cfg := Config{
+func NewCalendarConfig(pathToYaml string) CalendarConfig {
+	cfg := CalendarConfig{
 		Logger: LoggerConf{
 			Level: "info",
 		},
