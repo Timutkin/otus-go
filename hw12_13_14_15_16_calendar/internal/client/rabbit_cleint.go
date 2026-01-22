@@ -49,7 +49,6 @@ func (c *RabbitClient) Send(queueName string, message []byte) error {
 		false,     // no-wait
 		nil,       // arguments
 	)
-
 	if err != nil {
 		c.logger.ErrorWithParams(
 			"declare queue", map[string]string{
