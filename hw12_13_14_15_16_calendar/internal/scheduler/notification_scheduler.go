@@ -68,7 +68,7 @@ func (n NotificationScheduler) GetJobs() []Job {
 		{
 			Function:       n.deleteOldEvents(),
 			FunctionParams: nil,
-			Cron:           "* * * * *",
+			Cron:           "0 0 * * *",
 		},
 	}
 }
