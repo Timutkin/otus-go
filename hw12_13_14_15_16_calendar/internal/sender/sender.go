@@ -6,7 +6,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type SenderLogger interface {
+type Logger interface {
 	InfoWithParams(msg string, params map[string]string)
 	Info(msg string)
 }
@@ -18,10 +18,10 @@ type NotificationConsumer interface {
 type NotificationSender struct {
 	consumer  NotificationConsumer
 	queueName string
-	logger    SenderLogger
+	logger    Logger
 }
 
-func NewNotificationSender(consumer NotificationConsumer, queueName string, logger SenderLogger) NotificationSender {
+func NewNotificationSender(consumer NotificationConsumer, queueName string, logger Logger) NotificationSender {
 	return NotificationSender{
 		consumer:  consumer,
 		queueName: queueName,
