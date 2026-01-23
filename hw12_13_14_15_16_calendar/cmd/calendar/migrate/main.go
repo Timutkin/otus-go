@@ -17,13 +17,13 @@ import (
 var configFile string
 
 func init() {
-	flag.StringVar(&configFile, "config", "./configs/config.yaml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "./configs/calendar_config.yaml", "Path to configuration file")
 }
 
 func main() {
 	flag.Parse()
 
-	cfg := config.NewConfig(configFile)
+	cfg := config.NewCalendarConfig(configFile)
 
 	if !cfg.DB.InMemory {
 		db, err := goose.OpenDBWithDriver("pgx", cfg.DB.CollectDsn())

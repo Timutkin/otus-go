@@ -1,0 +1,6 @@
+rabbit:
+  connection-string: "amqp://guest:guest@localhost:5672/"
+  queue: "queue"
+
+logging:
+  level: DEBUG
