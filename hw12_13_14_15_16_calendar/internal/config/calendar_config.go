@@ -35,6 +35,7 @@ type DBConf struct {
 	Dbname   string   `config:"dbname"`
 	Tables   DBTables `config:"tables"`
 }
+
 type DBTables struct {
 	Schema string `config:"schema"`
 }
