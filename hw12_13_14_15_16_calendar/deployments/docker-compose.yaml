@@ -1,1 +1,132 @@
-version: "3"
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: calendar-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: calendar
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d calendar"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - calendar-network
+
+  rabbitmq:
+    image: rabbitmq:3.12-alpine
+    container_name: calendar-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - calendar-network
+
+  migrate:
+    build:
+      context: ..
+      dockerfile: build/calendar/Dockerfile.migrate
+      args:
+        LDFLAGS: ""
+    image: calendar-migrate:latest
+    container_name: calendar-migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      CONFIG_FILE: /etc/calendar/config.yaml
+    volumes:
+      - ../configs/calendar_config.yaml:/etc/calendar/config.yaml:ro
+    networks:
+      - calendar-network
+
+  calendar:
+    build:
+      context: ..
+      dockerfile: build/calendar/Dockerfile
+      args:
+        LDFLAGS: ""
+    image: calendar:latest
+    container_name: calendar-app
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      CONFIG_FILE: /etc/calendar/config.yaml
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    volumes:
+      - ../configs/calendar_config.yaml:/etc/calendar/config.yaml:ro
+    networks:
+      - calendar-network
+    restart: unless-stopped
+
+  scheduler:
+    build:
+      context: ..
+      dockerfile: build/calendar_scheduler/Dockerfile
+      args:
+        LDFLAGS: ""
+    image: calendar-scheduler:latest
+    container_name: calendar-scheduler
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      calendar:
+        condition: service_started
+    environment:
+      CONFIG_FILE: /etc/calendar/config.yaml
+    volumes:
+      - ../configs/calendar_scheduler_config.yaml:/etc/calendar/config.yaml:ro
+    networks:
+      - calendar-network
+    restart: unless-stopped
+
+  sender:
+    build:
+      context: ..
+      dockerfile: build/calendar_sender/Dockerfile
+      args:
+        LDFLAGS: ""
+    image: calendar-sender:latest
+    container_name: calendar-sender
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      scheduler:
+        condition: service_started
+    environment:
+      CONFIG_FILE: /etc/calendar/config.yaml
+    volumes:
+      - ../configs/calendar_sender_config.yaml:/etc/calendar/config.yaml:ro
+    networks:
+      - calendar-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+
+networks:
+  calendar-network:
+    driver: bridge

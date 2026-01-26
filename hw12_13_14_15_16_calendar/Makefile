@@ -42,4 +42,13 @@ migrate:
 generate:
 	go generate ./grpc/pb/...
 
+up:
+	docker-compose -f ./deployments/docker-compose.yaml up
+
+down:
+	docker-compose -f ./deployments/docker-compose.yaml down
+
+integration-tests:
+	 go test -v -tags migrations ./test/integration
+
 .PHONY: build run build-img run-img version test lint generate

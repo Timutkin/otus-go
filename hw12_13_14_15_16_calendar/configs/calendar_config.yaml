@@ -2,16 +2,17 @@ logging:
   level: info
 
 server:
-  http-host: localhost
+  http-host: 0.0.0.0
   http-port: 8080
-  grpc-host: localhost
+  grpc-host: 0.0.0.0
   grpc-port: 50051
 
 db:
   in-memory: false
-  host: localhost
+  host: postgres
   port: 5432
   user: postgres
-  dbname: postgres
+  password: postgres
+  dbname: calendar
   tables:
     schema: public

@@ -1,13 +1,14 @@
 rabbit:
-  connection-string: "amqp://guest:guest@localhost:5672/"
+  connection-string: "amqp://guest:guest@rabbitmq:5672/"
   queue: "queue"
 
 db:
   in-memory: false
-  host: localhost
+  host: postgres
   port: 5432
   user: postgres
-  dbname: postgres
+  password: postgres
+  dbname: calendar
   tables:
     schema: public
 

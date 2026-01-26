@@ -30,9 +30,10 @@ func main() {
 		if err != nil {
 			log.Fatal().Err(err).Msg("error while connect to db")
 		}
+		defer db.Close()
 
 		ctx := context.Background()
-		if err = goose.RunContext(ctx, "up", db, "migrations"); err != nil {
+		if err = goose.RunContext(ctx, "up", db, "."); err != nil {
 			log.Fatal().Err(err).Msg("goose run failed")
 		}
 	}

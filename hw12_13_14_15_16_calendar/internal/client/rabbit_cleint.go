@@ -73,7 +73,7 @@ func (c *RabbitClient) Send(queueName string, message []byte) error {
 	return err
 }
 
-func (c *RabbitClient) Consume(queueName string) <-chan amqp.Delivery {
+func (c *RabbitClient) Consume(queueName string) (<-chan amqp.Delivery, error) {
 	ch, err := c.connection.Channel()
 	if err != nil {
 		c.logger.ErrorWithParams(
@@ -93,12 +93,7 @@ func (c *RabbitClient) Consume(queueName string) <-chan amqp.Delivery {
 		nil,       // args
 	)
 	if err != nil {
-		c.logger.ErrorWithParams(
-			"consume messages", map[string]string{
-				"queueName": queueName,
-			},
-			err,
-		)
+		return nil, err
 	}
-	return messages
+	return messages, err
 }

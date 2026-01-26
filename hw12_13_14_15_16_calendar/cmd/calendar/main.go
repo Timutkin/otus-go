@@ -47,7 +47,7 @@ func main() {
 		storage = memorystorage.New()
 	} else {
 		logg.Info("work with postgresql...")
-		sql := sqlstorage.New(cfg.DB)
+		sql := sqlstorage.New(cfg.DB.CollectDsn(), cfg.DB)
 		err := sql.Connect(context.Background())
 		if err != nil {
 			logg.Fatal("failed connect to db", err)

@@ -10,6 +10,7 @@ import (
 
 type CalendarSenderConfig struct {
 	Rabbit Rabbit                     `config:"rabbit"`
+	DB     DBConf                     `config:"db"`
 	Logger CalendarSenderLoggerConfig `config:"logging"`
 }
 

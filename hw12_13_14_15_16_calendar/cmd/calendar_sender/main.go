@@ -13,6 +13,7 @@ import (
 	"github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/config"
 	"github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/logger"
 	"github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/sender"
+	sqlstorage "github.com/timutkin/otus-go/hw12_13_14_15_calendar/internal/storage/sql"
 )
 
 var configFile string
@@ -39,7 +40,14 @@ func main() {
 	logg := logger.New()
 
 	rabbitClient := client.NewRabbitClient(cfg.Rabbit.ConnectionString, logg)
-	notificationSender := sender.NewNotificationSender(rabbitClient, cfg.Rabbit.QueueName, logg)
+
+	sql := sqlstorage.New(cfg.DB.CollectDsn(), cfg.DB)
+	err = sql.Connect(context.Background())
+	if err != nil {
+		logg.Fatal("failed connect to db", err)
+	}
+
+	notificationSender := sender.NewNotificationSender(rabbitClient, cfg.Rabbit.QueueName, logg, sql)
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
