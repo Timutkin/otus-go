@@ -1,0 +1,32 @@
+# Собираем миграции
+FROM golang:1.24-alpine AS build
+
+RUN apk add --no-cache git
+
+ENV BIN_FILE /opt/calendar/migrate
+WORKDIR /src
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+ARG LDFLAGS=""
+RUN CGO_ENABLED=0 GOOS=linux go build \
+        -ldflags "${LDFLAGS}" \
+        -tags migrations \
+        -o ${BIN_FILE} ./cmd/calendar/migrate
+
+FROM alpine:3.19
+
+RUN apk add --no-cache tzdata ca-certificates
+
+ENV CONFIG_FILE "/app/config.yaml"
+WORKDIR /app
+
+COPY --from=build /opt/calendar/migrate ./migrate
+COPY ./configs/calendar_config.yaml ./config.yaml
+COPY ./migrations ./migrations
+
+ENTRYPOINT ["./migrate"]
+CMD ["-config", "/app/config.yaml"]

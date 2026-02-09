@@ -26,13 +26,13 @@ type Storage struct {
 }
 
 func (s *Storage) Create(ctx context.Context, e storage.Event) error {
-	builder := sq.Insert(s.tableName).
-		Columns("id", "title", "date_time", "event_duration", "description", "user_id", "notification_time").
-		Values(e.ID, e.Title, e.DateTime, e.EventDuration, e.Description, e.UserID, e.NotificationTime)
+	cols := []string{"id", "title", "date_time", "event_duration", "description", "user_id", "notification_time"}
+	vals := []any{e.ID, e.Title, e.DateTime, e.EventDuration, e.Description, e.UserID, e.NotificationTime}
 	if e.NotificationTime != nil {
-		builder = builder.Columns("notification_status").Values("PENDING")
+		cols = append(cols, "notification_status")
+		vals = append(vals, "PENDING")
 	}
-	sql, args, err := builder.PlaceholderFormat(sq.Dollar).ToSql()
+	sql, args, err := sq.Insert(s.tableName).Columns(cols...).Values(vals...).PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
 		return fmt.Errorf("building create user query : %w", err)
 	}
@@ -188,10 +188,10 @@ func (s *Storage) FindByDateTimeMoreOrEqual(dateTime time.Time) ([]storage.Event
 	return events, nil
 }
 
-func New(cfg config.DBConf) *Storage {
+func New(dsn string, cfg config.DBConf) *Storage {
 	tables := cfg.Tables
 	return &Storage{
-		dsn:       cfg.CollectDsn(),
+		dsn:       dsn,
 		tableName: tables.Schema + "." + "events",
 	}
 }

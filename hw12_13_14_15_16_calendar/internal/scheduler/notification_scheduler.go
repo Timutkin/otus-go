@@ -89,7 +89,7 @@ func (n NotificationScheduler) sendEvents() func() {
 			go func() {
 				defer wg.Done()
 				n.handleEventForNotification(e)
-				status := "SENT"
+				status := "PENDING_SENT"
 				err := n.storage.Update(context.Background(), storage.Event{
 					ID:                 e.ID,
 					NotificationStatus: &status,
