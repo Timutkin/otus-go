@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "calendar-scheduler.fullname" . }}-config
+data:
+  config.yaml: |
+    rabbit:
+      connection-string: {{ .Values.config.rabbit.connectionString }}
+      queue: {{ .Values.config.rabbit.queue }}
+    db:
+      in-memory: {{ .Values.config.db.inMemory }}
+      host: {{ .Values.config.db.host }}
+      port: {{ .Values.config.db.port }}
+      user: {{ .Values.config.db.user }}
+      password: {{ .Values.config.db.password }}
+      dbname: {{ .Values.config.db.dbname }}
+      tables:
+        schema: {{ .Values.config.db.schema }}
+    logging:
+      level: {{ .Values.config.logging.level }}

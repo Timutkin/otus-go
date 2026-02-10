@@ -1,0 +1,28 @@
+replicaCount: 1
+
+image:
+  registry: ""
+  repository: calendar
+  tag: "latest"
+  pullPolicy: Never
+
+ingress:
+  enabled: true
+  host: calendar.local
+
+config:
+  logging:
+    level: info
+  server:
+    httpHost: 0.0.0.0
+    httpPort: 8080
+    grpcHost: 0.0.0.0
+    grpcPort: 50051
+  db:
+    inMemory: false
+    host: postgres
+    port: 5432
+    user: postgres
+    password: postgres
+    dbname: calendar
+    schema: public

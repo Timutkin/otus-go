@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "calendar-calendar.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: calendar
+  template:
+    metadata:
+      labels:
+        app: calendar
+    spec:
+      containers:
+      - name: calendar
+        image: {{ .Values.image.registry }}{{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: CONFIG_FILE
+          value: /etc/calendar/config.yaml
+        ports:
+        - containerPort: {{ .Values.config.server.httpPort }}
+        - containerPort: {{ .Values.config.server.grpcPort }}
+        volumeMounts:
+        - name: config
+          mountPath: /etc/calendar
+      volumes:
+      - name: config
+        configMap:
+          name: {{ include "calendar-calendar.fullname" . }}-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: calendar
+spec:
+  selector:
+    app: calendar
+  ports:
+  - name: http
+    port: {{ .Values.config.server.httpPort }}
+    targetPort: {{ .Values.config.server.httpPort }}
+  - name: grpc
+    port: {{ .Values.config.server.grpcPort }}
+    targetPort: {{ .Values.config.server.grpcPort }}
+  type: ClusterIP
