@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "calendar-migrate.fullname" . }}
+spec:
+  template:
+    spec:
+      containers:
+      - name: migrate
+        image: {{ .Values.image.registry }}{{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: CONFIG_FILE
+          value: /etc/calendar/config.yaml
+        volumeMounts:
+        - name: config
+          mountPath: /etc/calendar
+      volumes:
+      - name: config
+        configMap:
+          name: {{ include "calendar-migrate.fullname" . }}-config
+      restartPolicy: Never

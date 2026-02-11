@@ -1,0 +1,5 @@
+image: postgres:15-alpine
+user: postgres
+password: postgres
+database: calendar
+storage: 1Gi

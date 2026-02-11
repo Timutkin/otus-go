@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "calendar-sender.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: sender
+  template:
+    metadata:
+      labels:
+        app: sender
+    spec:
+      containers:
+      - name: sender
+        image: {{ .Values.image.registry }}{{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: CONFIG_FILE
+          value: /etc/calendar/config.yaml
+        volumeMounts:
+        - name: config
+          mountPath: /etc/calendar
+      volumes:
+      - name: config
+        configMap:
+          name: {{ include "calendar-sender.fullname" . }}-config

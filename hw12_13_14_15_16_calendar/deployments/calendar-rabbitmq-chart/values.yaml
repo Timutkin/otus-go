@@ -1,0 +1,4 @@
+image: rabbitmq:3.12-alpine
+user: guest
+password: guest
+storage: 1Gi
